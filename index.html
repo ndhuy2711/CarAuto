@@ -20,7 +20,7 @@
 </head>
 
 <body>
-    <a-scene physics="debug: true, gravity: -9.8">
+    <a-scene physics="gravity: -9.8">
         <a-assets>
             <a-asset-item id="car" src="3DModel/Car/car.glb"></a-asset-item>
             <a-asset-item id="sensor" src="3DModel/Car/sensor.glb"></a-asset-item>
@@ -44,7 +44,7 @@
             grabEndButtons: gripopen;
             stretchEndButtons: gripopen; 
             dragDropEndButtons: gripopen;" hand-controls="hand: right; handModelStyle: highPoly" laser-controls
-                raycaster="objects: .clickable">
+                raycaster="objects: .clickable" static-body="shape: sphere; sphereRadius: 0.02" collision-filter="collisionForces: false">
             </a-entity>
         </a-entity>
         <!-- tạo 1 plan để làm mặt phẳng -->
