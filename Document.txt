@@ -1,0 +1,13 @@
+Version hỗ trợ AR Quest Pro cho A-Frame :
+- A-Frame : 1.4.0 trở lên
+- aframe-extras : 6.1.1
+- super-hands : 3.0.4
+- aframe-physics-system : 4.1.0
+Thẻ <a-scene></a-scene> thêm thuộc tính physics: <a-scene physics> </a-scene>
+Thao tác tay trên Quest Pro :  
+    <a-entity>
+        <a-camera></a-camera>
+        <a-entity sphere-collider="objects: a-gltf-model" super-hands hand-controls="hand: left"></a-entity>
+        <a-entity sphere-collider="objects: a-gltf-model" super-hands hand-controls="hand: right"></a-entity>
+    </a-entity>
+Các event aframe-extras : hoverable, grabbable, stretchable, draggable, droppable

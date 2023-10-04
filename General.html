@@ -1,0 +1,301 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <!-- <script src="https://unpkg.com/webxr-polyfill"></script> -->
+    <script src="https://unpkg.com/super-hands@^v3.0.4/dist/super-hands.min.js"></script>
+    <title>Raycaster to sensor</title>
+</head>
+
+<body>
+    <a-scene>
+        <a-assets>
+            <a-asset-item id="car" src="3DModel/Car/car.gltf"></a-asset-item>
+            <a-asset-item id="sensor" src="3DModel/Car/sensor.gltf"></a-asset-item>
+        </a-assets>
+        <!-- animation dùng để cho việc chuyển động khi được gọi đến : dùng hàm .emit -->
+        <a-entity id="cameraRig" position="0 0 0" animation="property: position; startEvents: go">
+            <a-entity id="camera" camera></a-entity>
+            <!-- sử dụng super-hand cho tay trái với sphere-collider là nơi chứa object được super hand hỗ trợ cầm nắm,  còn super-hands được cấu hình như dưới để ta sử dụng nút Trigger trên tay cầm Oculus -->
+            <a-entity id="handLeft" sphere-collider="objects: a-gltf-model" super-hands="grabStartButtons: triggerdown;
+            stretchStartButtons: triggerdown;
+            dragDropStartButtons : triggerdown; 
+            grabEndButtons: triggerup;
+            stretchEndButtons: triggerup; 
+            dragDropEndButtons: triggerup;" hand-controls="hand: left; handModelStyle: highPoly"></a-entity>
+            <!-- sử dụng super-hand cho tay phải với sphere-collider là nơi chứa object được super hand hỗ trợ cầm nắm,  còn super-hands được cấu hình như dưới để ta sử dụng nút Grip trên tay cầm Oculus -->
+            <!-- ngoài ra ta còn tạo thêm cho tay phải 1 line laser-controls với raycaster nhận objects được laser-controls click vào -->
+            <a-entity id="handRight" sphere-collider="objects: a-gltf-model" super-hands="grabStartButtons: gripclose;
+            stretchStartButtons: gripclose;
+            dragDropStartButtons : gripclose; 
+            grabEndButtons: gripopen;
+            stretchEndButtons: gripopen; 
+            dragDropEndButtons: gripopen;" hand-controls="hand: right; handModelStyle: highPoly" laser-controls
+                raycaster="objects: .clickable">
+            </a-entity>
+        </a-entity>
+        <!-- load 3d Model lên có thể được grabbable : cầm nắm và stretchable : kéo hoặc phóng to nhỏ  -->
+        <!-- sử dụng registerComponent là model để đăng kí với AFrame, mục đích là lấy được sự kiện click với id của a-gltf-model qua raycaster objects là class clickable -->
+        <a-gltf-model src="#car" id="carModel" visible="false" scale="1 1 1" grabbable stretchable>
+            <a-gltf-model model class="clickable" src="#sensor" id="sensorModel" visible="false" scale="1 1 1">
+            </a-gltf-model>
+        </a-gltf-model>
+        <!-- load các 3d model là part được tách sau khi click vào part trong 3d Model chính -->
+        <a-gltf-model id="partModel" src="" position="-1 4 0.4" visible="false" scale="1 1 1" grabbable stretchable>
+        </a-gltf-model>
+        <!-- sử dụng registerComponent là model để đăng kí với AFrame, mục đích là lấy được sự kiện click với id của các a-text và a-entuty qua raycaster objects là class clickable -->
+        <a-entity model raycaster="objects: clickable" id="tableData" visible="false" position="-1 4 -0.5"
+            rotation="0 90 0" scale="0.5 0.5 0.5">
+            <a-entity geometry="primitive: plane; width: 2; height: 0.2" position="0 0.4 0.001"
+                material="color: #223523" text="value: Engine Vios 2020; width: 2.5; align: center"></a-entity>
+            <a-plane width="2" height="1" color="#314932"></a-plane>
+            <a-text position="-0.6 0.2 0" width="2" value="Sensor's Name :" color="white" text="align :center"></a-text>
+            <a-text id="textSensor" position="0.3 0.2 0" width="2" value="" color="white" text="align :center"></a-text>
+            <a-text position="-0.6 0 0" width="2" value="Specifications :" color="white" text="align :center"></a-text>
+            <a-text id="specifications" position="0 0 0" width="2" value="0" color="white"
+                text="align :center"></a-text>
+            <a-text id="unit" position="0.5 0 0" width="2" value="" color="white" text="align :center"></a-text>
+            <a-entity class="clickable" id="closeButton" geometry="primitive: plane; width: 0.15; height: 0.15"
+                position="0.9 0.4 0.002" material="color: #a80000"
+                text="value: X; width: 1.5; align: center"></a-entity>
+            <a-entity geometry="primitive: plane; width: 1.95; height: 0.3" position="0 -0.3 0.001"
+                material="color: #223523">
+                <a-text position="-0.7 0.07 0" width="1.8" value="View Mode :" color="#8fe9ff"
+                    text="align :center"></a-text>
+                <a-entity class="clickable" id="wireframe" geometry="primitive: plane; width: 0.4; height: 0.15"
+                    position="-0.1 -0.04 0.002" material="color: #314932"
+                    text="value: Wire-frame; width: 1.5; align: center; color: #8fe9ff"></a-entity>
+                <a-entity class="clickable" id="transparent" geometry="primitive: plane; width: 0.4; height: 0.15"
+                    position="0.33 -0.04 0.002" material="color: #314932"
+                    text="value: Transparent; width: 1.5; align: center; color: #8fe9ff"></a-entity>
+                <a-entity class="clickable" id="original" geometry="primitive: plane; width: 0.4; height: 0.15"
+                    position="0.76 -0.04 0.002" material="color: #314932"
+                    text="value: Original; width: 1.5; align: center; color: #8fe9ff"></a-entity>
+            </a-entity>
+
+        </a-entity>
+    </a-scene>
+</body>
+
+</html>
+
+<script>
+    AFRAME.registerComponent('model', {
+        schema: {
+            sensor: { type: 'array', default: ['SensorContainer'] }
+        },
+        init: function () {
+            // Thiết lập EventSource để lắng nghe sự kiện từ server
+            // const eventSource = new EventSource('https://127.0.0.1:443');
+            const eventSource = new EventSource('https://192.168.137.1:443');
+            // Lắng nghe sự kiện message từ server
+            eventSource.onmessage = (event) => {
+                // dữ liệu sau khi nhận được từ SERVER thì ta parse lại Object 
+                const data = JSON.parse(event.data);
+                const getData = this.handleData(data)
+                var getIDTextSensor = document.getElementById('textSensor')
+                const getNameSensor = getIDTextSensor.getAttribute('value')
+                var getIDSpecifications = document.getElementById('specifications')
+                getIDSpecifications.setAttribute('value', `${getData[`${getNameSensor}`]}`)
+            };
+            this.transparentModelInit(0.5, 1)
+            this.el.addEventListener('click', this.showAMeshClick.bind(this));
+        },
+        showAMeshClick: function (event) {
+            const getTarget = event.target
+            const idClick = getTarget.getAttribute("id")
+            const part = document.getElementById("partModel")
+            // bắt sự kiện Click qua idClick để map các hàm xử lí
+            switch (idClick) {
+                case "closeButton": this.closeTable(); break;
+                case "wireframe": this.getPartShowWireFrame(); break;
+                case "transparent": this.getPartShowTransparent(); break;
+                case "original": this.getPartShowOriginal(); break;
+                case "sensorModel":
+                    const nameMesh = event?.detail?.intersection?.object?.name
+                    if (nameMesh !== undefined) {
+                        this.transparentModelAfter(0, 0)
+                        this.getPart(nameMesh)
+                        this.showData(nameMesh)
+                        let camRig = document.querySelector('#cameraRig')
+                        camRig.setAttribute("animation", {
+                            "to": AFRAME.utils.coordinates.stringify({ x: 0, y: 3, z: 0 }),
+                            "dur": 1000
+                        })
+                        camRig.emit('go')
+                    };
+                    break;
+                default: break;
+            }
+        },
+        objectCar: function () {
+            const objCar = document.getElementById('carModel').getObject3D('mesh')
+            return objCar
+        },
+        objectSensor: function () {
+            const objSensor = document.getElementById('sensorModel').getObject3D('mesh')
+            return objSensor
+        },
+        transparentModelInit: function (opacityNotMesh, opacityIsMesh) {
+            const _this = this
+            document.querySelector('#carModel').addEventListener('model-loaded', function () {
+                const obj = this.getObject3D('mesh');
+                _this.transparentNotMesh(obj, opacityNotMesh)
+                this.setAttribute('visible', 'true');
+            })
+            document.querySelector('#sensorModel').addEventListener('model-loaded', function () {
+                const obj = this.getObject3D('mesh');
+                _this.transparentIsMesh(obj, opacityIsMesh)
+                this.setAttribute('visible', 'true');
+            })
+
+        },
+        transparentModelAfter: function (opacityNotMesh, opacityIsMesh) {
+            const objCar = this.objectCar()
+            const objSensor = this.objectSensor()
+            this.transparentNotMesh(objCar, opacityNotMesh)
+            this.transparentIsMesh(objSensor, opacityIsMesh)
+        },
+        transparentNotMesh: function (obj, opacity) {
+            if (obj !== undefined) {
+                obj.traverse(function (child) {
+                    if (child.isMesh) {
+                        child.material.transparent = true;
+                        child.material.opacity = opacity;
+                    }
+                })
+            }
+        },
+        transparentIsMesh: function (obj, opacity) {
+            const obj3D = this.data.sensor
+            if (obj !== undefined) {
+                obj.traverse(function (object3D) {
+                    if (object3D.name === obj3D[0]) {
+                        object3D.traverse(function (child) {
+                            const nameMesh = child.name;
+                            if (child.isMesh) {
+                                child.material.transparent = true;
+                                child.material.opacity = opacity;
+                            }
+                        })
+                    }
+                })
+            }
+        },
+        getPart: function (nameMesh) {
+            if (nameMesh === "Scene026" || nameMesh === "Scene026_1" || nameMesh === "Scene026_2") {
+                nameMesh = "Wheel"
+            }
+            const part = document.getElementById("partModel")
+            part.setAttribute("src", `3DModel/Car/Parts/${nameMesh}.gltf`)
+            part.setAttribute("visible", true)
+        },
+        getPartShowWireFrame: function () {
+            const part = document.getElementById("partModel")
+            const obj = part.getObject3D('mesh')
+            obj.traverse(function (child) {
+                if (child.isMesh) {
+                    part.setAttribute("visible", false)
+                    child.material.transparent = true;
+                    child.material.opacity = 1;
+                    child.material.wireframe = true;
+                    part.setAttribute("visible", true)
+                }
+            });
+            part.setAttribute("visible", true)
+        },
+        getPartShowTransparent: function () {
+            const part = document.getElementById("partModel")
+            const obj = part.getObject3D('mesh')
+            obj.traverse(function (child) {
+                if (child.isMesh) {
+                    part.setAttribute("visible", false)
+                    child.material.transparent = true;
+                    child.material.opacity = 0.5;
+                    child.material.wireframe = false;
+                    part.setAttribute("visible", true)
+                }
+            });
+            part.setAttribute("visible", true)
+        },
+        getPartShowOriginal: function () {
+            const part = document.getElementById("partModel")
+            const obj = part.getObject3D('mesh')
+            obj.traverse(function (child) {
+                if (child.isMesh) {
+                    part.setAttribute("visible", false)
+                    child.material.transparent = true;
+                    child.material.opacity = 1;
+                    child.material.wireframe = false;
+                    part.setAttribute("visible", true)
+                }
+            });
+            part.setAttribute("visible", true)
+        },
+        showData: function (mesh) {
+            var getIDTextSensor = document.getElementById('textSensor')
+            var getIDSpecifications = document.getElementById('specifications')
+            var getIDUnit = document.getElementById('unit')
+
+            var getIDTableData = document.getElementById('tableData')
+
+            if (mesh !== undefined && mesh !== "") {
+                if (mesh === "Scene026" || mesh === "Scene026_1" || mesh === "Scene026_2") {
+                    mesh = "Wheel"
+                }
+                const units = this.unit(mesh)
+                getIDTextSensor.setAttribute('value', `${mesh}`)
+                getIDSpecifications.setAttribute('value', `0`)
+                getIDUnit.setAttribute('value', `(${units})`)
+                getIDTableData.setAttribute('visible', true)
+            } else {
+                getIDTableData.setAttribute('visible', false)
+            }
+        },
+        closeTable: function () {
+            var getIDTableData = document.getElementById('tableData')
+            getIDTableData.setAttribute('visible', false)
+            const part = document.getElementById("partModel")
+            part.setAttribute("visible", false)
+            this.transparentModelAfter(0.5, 1)
+            let camRig = document.querySelector('#cameraRig')
+            camRig.setAttribute("animation", {
+                "to": AFRAME.utils.coordinates.stringify({ x: 0, y: 0, z: 0 }),
+                "dur": 1000
+            })
+            camRig.emit('go')
+        },
+        handleData: function (data) {
+            const Acceleration_Sensor = data.aps
+            const AmbientAir = data.ats
+            const Camshaft_Position = data.cps
+            const Engine_Coolant_Temperature = data.ect
+            const Intake_Air_Temperature = data.iat
+            const Mass_Air_Flow = data.maf
+            const Oxygen_Sensor = data.oxys
+            const Steering_Angle_Sensor = data.sas
+            const Vehicle_Speed_ = data.vss
+            const Wheel = data.pressure
+            return { Acceleration_Sensor, AmbientAir, Camshaft_Position, Engine_Coolant_Temperature, Intake_Air_Temperature, Mass_Air_Flow, Oxygen_Sensor, Steering_Angle_Sensor, Vehicle_Speed_, Wheel }
+        },
+        unit: function (mesh) {
+            let unit = ""
+            switch (mesh) {
+                case "Acceleration_Sensor": return unit = "Volts"; break;
+                case "AmbientAir": return unit = "degrees Celsius"; break;
+                case "Camshaft_Position": return unit = "Volts"; break;
+                case "Engine_Coolant_Temperature": return unit = "degrees Celsius"; break;
+                case "Intake_Air_Temperature": return unit = "degrees Celsius"; break;
+                case "Mass_Air_Flow": return unit = "g/s"; break;
+                case "Oxygen_Sensor": return unit = "Volts"; break;
+                case "Steering_Angle_Sensor": return unit = "degrees"; break;
+                case "Vehicle_Speed_": return unit = "km/h"; break;
+                case "Wheel": return unit = "psi"; break;
+                default: return unit = ""
+            }
+        }
+    })
+</script>
