@@ -44,11 +44,11 @@
             grabEndButtons: gripopen;
             stretchEndButtons: gripopen; 
             dragDropEndButtons: gripopen;" hand-controls="hand: right; handModelStyle: highPoly" laser-controls
-                raycaster="objects: .clickable" static-body="shape: sphere; sphereRadius: 0.02" collision-filter="collisionForces: false">
+                raycaster="objects: .clickable">
             </a-entity>
         </a-entity>
         <!-- tạo 1 plan để làm mặt phẳng -->
-        <a-plane color="#CCC" rotation="90 0 0" position="0 -0.01 0" height="50" width="50" static-body></a-plane>
+        <a-plane color="#CCC" rotation="90 0 0" position="0 -0.01 0" depth="0.1" height="150" width="150" static-body></a-plane>
         <!-- load 3d Model lên có thể được grabbable : cầm nắm và stretchable : kéo hoặc phóng to nhỏ  -->
         <!-- sử dụng registerComponent là model để đăng kí với AFrame, mục đích là lấy được sự kiện click với id của a-gltf-model qua raycaster objects là class clickable -->
         <a-gltf-model src="#car" id="carModel" visible="false" scale="1 1 1" grabbable stretchable
