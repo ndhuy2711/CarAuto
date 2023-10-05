@@ -103,17 +103,17 @@
         init: function () {
             // Thiết lập EventSource để lắng nghe sự kiện từ server
             // const eventSource = new EventSource('https://127.0.0.1:443');
-            // const eventSource = new EventSource('https://192.168.137.1:443');
-            // // Lắng nghe sự kiện message từ server
-            // eventSource.onmessage = (event) => {
-            //     // dữ liệu sau khi nhận được từ SERVER thì ta parse lại Object 
-            //     const data = JSON.parse(event.data);
-            //     const getData = this.handleData(data)
-            //     var getIDTextSensor = document.getElementById('textSensor')
-            //     const getNameSensor = getIDTextSensor.getAttribute('value')
-            //     var getIDSpecifications = document.getElementById('specifications')
-            //     getIDSpecifications.setAttribute('value', `${getData[`${getNameSensor}`]}`)
-            // };
+            const eventSource = new EventSource('https://carautoserver.netlify.app/.netlify/functions/api');
+            // Lắng nghe sự kiện message từ server
+            eventSource.onmessage = (event) => {
+                // dữ liệu sau khi nhận được từ SERVER thì ta parse lại Object 
+                const data = JSON.parse(event.data);
+                const getData = this.handleData(data)
+                var getIDTextSensor = document.getElementById('textSensor')
+                const getNameSensor = getIDTextSensor.getAttribute('value')
+                var getIDSpecifications = document.getElementById('specifications')
+                getIDSpecifications.setAttribute('value', `${getData[`${getNameSensor}`]}`)
+            };
             this.transparentModelInit(0.7, 1)
             this.el.addEventListener('click', this.showAMeshClick.bind(this));
         },
